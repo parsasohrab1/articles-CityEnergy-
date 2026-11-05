@@ -1,0 +1,54 @@
+{
+ "note": "synthetic hourly series, 104 weeks, 10 seeds; interval target coverage 0.90",
+ "no_shift": {
+  "n_seeds": 10,
+  "ridge": {
+   "mape_pre": 0.033892531226186975,
+   "mape_post": 0.03215881386933808,
+   "coverage_pre": 0.8779761904761905,
+   "coverage_post": 0.897093837535014,
+   "rel_halfwidth": 0.06593934567760286
+  },
+  "seasonal_naive": {
+   "mape_pre": 0.056769064256602456,
+   "mape_post": 0.05901259053365042,
+   "coverage_pre": 0.9208333333333334,
+   "coverage_post": 0.886204481792717,
+   "rel_halfwidth": 0.11984580445685637
+  }
+ },
+ "heatwave_+4C": {
+  "n_seeds": 10,
+  "ridge": {
+   "mape_pre": 0.033892531226186975,
+   "mape_post": 0.032168110731257374,
+   "coverage_pre": 0.8779761904761905,
+   "coverage_post": 0.8971813725490195,
+   "rel_halfwidth": 0.06593934567760286
+  },
+  "seasonal_naive": {
+   "mape_pre": 0.056769064256602456,
+   "mape_post": 0.06790512137883804,
+   "coverage_pre": 0.9208333333333334,
+   "coverage_post": 0.838655462184874,
+   "rel_halfwidth": 0.11984580445685637
+  }
+ },
+ "cooling_drift_x1.4": {
+  "n_seeds": 10,
+  "ridge": {
+   "mape_pre": 0.033892531226186975,
+   "mape_post": 0.035271730576022994,
+   "coverage_pre": 0.8779761904761905,
+   "coverage_post": 0.8557072829131653,
+   "rel_halfwidth": 0.06593934567760286
+  },
+  "seasonal_naive": {
+   "mape_pre": 0.056769064256602456,
+   "mape_post": 0.06421671975636402,
+   "coverage_pre": 0.9208333333333334,
+   "coverage_post": 0.8585434173669467,
+   "rel_halfwidth": 0.11984580445685637
+  }
+ }
+}
