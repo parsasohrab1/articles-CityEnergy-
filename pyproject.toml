@@ -1,0 +1,26 @@
+[project]
+name = "cityenergy"
+version = "0.1.0"
+description = "Building-wise electricity intervals on Building Data Genome 2"
+requires-python = ">=3.10"
+dependencies = ["numpy==2.1.1", "pandas==2.2.3"]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.3"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "scripts", "research"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
