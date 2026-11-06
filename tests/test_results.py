@@ -33,7 +33,8 @@ def test_committed_results_match_a_fresh_run():
 def test_readme_and_trl_quote_the_results_file():
     payload = json.loads((ROOT / "results" / "results.json").read_text(encoding="utf-8"))
     block = results_block(payload)
-    for relative in ("README.md", "docs/TRL.md"):
+    quoted = ("README.md", "docs/TRL.md", "docs/JOURNAL_FIT.md", "article/abstract.md")
+    for relative in quoted:
         text = (ROOT / relative).read_text(encoding="utf-8")
         assert block in text
         assert text == replace_results_block(text, block)
@@ -41,3 +42,24 @@ def test_readme_and_trl_quote_the_results_file():
     trl = (ROOT / "docs" / "TRL.md").read_text(encoding="utf-8")
     assert "synthetic-data performance number" in readme
     assert "synthetic-data performance number" in trl
+
+
+def test_aiei_gate_names_the_call_and_does_not_submit():
+    gate = (ROOT / "docs" / "JOURNAL_FIT.md").read_text(encoding="utf-8")
+    assert "https://www.aiei2027.org/cfp.html" in gate
+    assert "15 February 2027" in gate
+    assert "Do not submit." in gate
+    assert "Intelligent energy forecasting" in gate
+    banned = []
+    watched = (
+        "README.md",
+        "docs/BRS.md",
+        "docs/TRL.md",
+        "docs/JOURNAL_FIT.md",
+        "article/abstract.md",
+    )
+    for relative in watched:
+        text = (ROOT / relative).read_text(encoding="utf-8").lower()
+        if "patent" in text or "counsel" in text:
+            banned.append(relative)
+    assert banned == []

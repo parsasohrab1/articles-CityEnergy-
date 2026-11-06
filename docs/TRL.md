@@ -5,7 +5,7 @@
 | TRL 1–3 | done | Interval protocol and building-wise split are implemented in `src/cityenergy/protocol.py`. |
 | TRL 4 | not used as evidence | This repository does not report a synthetic-data performance number. |
 | TRL 5 | measured offline | The same protocol was run on real Building Data Genome 2 electricity meters, with whole buildings held out. Counts are in `results/results.json`. The shared absolute-residual width is large relative to the mean test load, so the coverage is not evidence of a tight interval. This is not a live building and not a BMS integration. |
-| TRL 6+ | not reached | Needs a second site campaign or an operator-facing deployment, plus the journal-fit gate and patent-counsel review before AIEI 2027. |
+| TRL 6+ | not reached | Needs a second site campaign or an operator-facing deployment. The AIEI 2027 journal-fit gate is recorded in `docs/JOURNAL_FIT.md` and its decision is not to submit. |
 
 ## Measured result
 

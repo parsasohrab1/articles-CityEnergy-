@@ -8,7 +8,7 @@ Scope of this release: an offline, reproducible check of a nominal 90% hourly el
 | BR-02 | Do not treat a synthetic series as a performance claim. | README and `docs/TRL.md` state that no synthetic-data performance number is reported. The only performance document is `results/results.json`. |
 | BR-03 | Judge the interval on buildings that did not train or calibrate it. | Building-wise split in `src/cityenergy/protocol.py` |
 | BR-04 | Publish the measured coverage, width, and point-forecast error from the script, including the case where coverage misses the nominal 90%. | `results/results.json` and the generated blocks in README and `docs/TRL.md` |
-| BR-05 | Keep filed patent claims out of the repository. Counsel confirms that before any manuscript. | Method text cites only the published absolute-residual interval. No other score is specified. |
-| BR-06 | Do not submit to AIEI 2027 until the journal-fit gate for that call is complete. | This release does not submit a manuscript. |
+| BR-05 | Describe only the published absolute-residual interval. | `src/cityenergy/protocol.py` cites Lei et al. (2018) and Vovk, Gammerman and Shafer (2005). No other score is specified. |
+| BR-06 | Record the AIEI 2027 journal-fit gate before any submission, and do not submit when the measured interval is not a useful forecast. | `docs/JOURNAL_FIT.md`. Decision: do not submit. |
 
 Out of scope: a live building, a control set-point, a tariff decision, and a second data source.
