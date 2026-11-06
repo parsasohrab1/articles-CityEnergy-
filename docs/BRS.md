@@ -9,6 +9,6 @@ Scope of this release: an offline, reproducible check of a nominal 90% hourly el
 | BR-03 | Judge the interval on buildings that did not train or calibrate it. | Building-wise split in `src/cityenergy/protocol.py` |
 | BR-04 | Publish the measured coverage, width, and point-forecast error from the script, including the case where coverage misses the nominal 90%. | `results/results.json` and the generated blocks in README and `docs/TRL.md` |
 | BR-05 | Describe only the published absolute-residual interval. | `src/cityenergy/protocol.py` cites Lei et al. (2018) and Vovk, Gammerman and Shafer (2005). No other score is specified. |
-| BR-06 | Record the AIEI 2027 journal-fit gate before any submission, and do not submit when the measured interval is not a useful forecast. | `docs/JOURNAL_FIT.md`. Decision: do not submit. |
+| BR-06 | Meet the AIEI 2027 full-paper conditions with the negative finding, and do not describe the interval as a useful forecast. | `docs/JOURNAL_FIT.md`, `article/manuscript.pdf`, `docs/SUBMISSION.md`. |
 
 Out of scope: a live building, a control set-point, a tariff decision, and a second data source.

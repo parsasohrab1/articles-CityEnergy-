@@ -4,7 +4,7 @@ Offline check of a nominal 90% electricity interval on real non-residential mete
 
 This repository does not report a synthetic-data performance number.
 
-The target venue is AIEI 2027 at https://www.aiei2027.org/ (deadline 15 February 2027). The journal-fit gate is in `docs/JOURNAL_FIT.md`. Its decision is not to submit: the measured interval is too wide relative to the test load to support a useful-forecast claim. This repository is not a submission. The interval implemented here is the published absolute-residual construction cited above. No other conformity score is described.
+The target venue is AIEI 2027 at https://www.aiei2027.org/ (deadline 15 February 2027). The journal-fit gate is in `docs/JOURNAL_FIT.md`. The anonymized manuscript is `article/manuscript.pdf`. It states the negative finding: the measured interval is too wide relative to the test load to support a useful-forecast claim. Upload steps that only an author can finish are in `docs/SUBMISSION.md`. Nothing has been uploaded. The interval implemented here is the published absolute-residual construction cited above. No other conformity score is described.
 
 ## Measured result
 

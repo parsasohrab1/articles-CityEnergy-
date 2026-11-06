@@ -33,4 +33,4 @@ One shared absolute-residual width is applied to every test building. Read the w
 
 ## Decision
 
-Do not submit. A manuscript that led with a successful 90% interval would not match this measurement. No file has been uploaded to the AIEI EasyChair site.
+Do not submit this measurement as a successful interval. The anonymized file `article/manuscript.pdf` is the full paper for the negative finding: English, no author names, and within the six-page limit. `docs/SUBMISSION.md` lists the portal steps. Nothing has been uploaded.

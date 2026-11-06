@@ -129,6 +129,99 @@ def results_block(payload: dict[str, Any]) -> str:
     )
 
 
+def manuscript_text(payload: dict[str, Any]) -> str:
+    """Double-blind manuscript. Measured figures come only from ``payload``."""
+    metrics = payload["metrics"]
+    selection = payload["selection"]
+    nominal = float(payload["protocol"]["nominal_coverage"])
+    covered = int(metrics["n_covered"])
+    hours = int(metrics["n_test_hours"])
+    abstract = (
+        "We test whether one absolute-residual prediction interval, calibrated on "
+        f"some buildings, covers hourly electricity on other buildings. On site "
+        f"{selection['site_id']} of the Building Data Genome Project 2, "
+        f"{selection['n_train_buildings']} buildings train an hour-of-week mean, "
+        f"{selection['n_calibration_buildings']} buildings set the interval, and "
+        f"{selection['n_test_buildings']} buildings are held out. The interval "
+        f"covered {covered}/{hours} test hours ({covered / hours:.4f}) at a nominal "
+        f"coverage of {nominal:.4f}. Its width was {metrics['interval_width_kwh']:.4f} "
+        f"kWh. The mean test load was {metrics['mean_test_load_kwh']:.4f} kWh and the "
+        f"mean absolute error was {metrics['mae_kwh']:.4f} kWh. The width is large "
+        "relative to the load, so the coverage is not evidence of a useful forecast."
+    )
+    sections = [
+        ("Abstract", abstract),
+        (
+            "1. Question",
+            "Building electricity forecasts are often a single number. An interval "
+            "is useful only when it is both calibrated and narrow enough for the load "
+            "it describes. This paper asks whether one interval width, estimated on "
+            "other buildings, transfers to held-out buildings.",
+        ),
+        (
+            "2. Data",
+            "The meters are the cleaned hourly electricity file and the building "
+            "metadata in Building Data Genome Project 2, release v1.0 "
+            "(doi:10.5281/zenodo.3887306), described by Miller et al. (2020). "
+            "The data license is CC BY 4.0. The ASHRAE Kaggle competition files "
+            "were not used. A meter is kept when at least 95 percent of its hours "
+            "are present. The site with the most such meters is used. At most 40 "
+            "meters are kept, spread across the sorted building identifiers. Each "
+            "kept building is assigned to training, calibration, or test by a fixed "
+            "hash of its identifier. Hours are not shuffled across buildings.",
+        ),
+        (
+            "3. Interval",
+            "The point forecast is the mean load at that hour of the week, computed "
+            "on training buildings only. The interval is the inductive split-conformal "
+            "interval with absolute residuals (Vovk, Gammerman and Shafer, 2005; "
+            "Lei et al., 2018). The quantile uses rank ceil((n+1)*(1-alpha)) on "
+            "calibration buildings, with alpha equal to 0.10. The same width is then "
+            "applied to every test hour. No other conformity score is used. A "
+            "language model assisted with wording; the measurements were checked "
+            "against the script output.",
+        ),
+        ("4. Measurement", results_block(payload)),
+        (
+            "5. Reading the measurement",
+            "Every test hour falls inside the interval, and the same is nearly true "
+            "of the quantile taken from training residuals. That coverage sits above "
+            "the nominal level because one width, set by larger calibration meters, "
+            "is applied to smaller test meters. Compare the width with the mean test "
+            "load in the measurement section. A symmetric residual interval can also "
+            "extend below zero. Weather is not an input. One site is not another site. "
+            "The result is not a building-management deployment.",
+        ),
+        (
+            "6. Conclusion",
+            "A nominal 90 percent electricity interval that uses one absolute residual "
+            "across buildings can cover every held-out hour and still be too wide to "
+            "use. Coverage alone is the wrong claim. The file to submit states this "
+            "negative finding and no stronger one.",
+        ),
+        (
+            "References",
+            "Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R. J., and Wasserman, L. "
+            "Distribution-free predictive inference for regression. Journal of the "
+            "American Statistical Association, 113(523), 1094-1111, 2018.\n"
+            "Miller, C., et al. The Building Data Genome Project 2. Scientific Data, "
+            "7, 368, 2020. doi:10.1038/s41597-020-00712-x.\n"
+            "Vovk, V., Gammerman, A., and Shafer, G. Algorithmic Learning in a Random "
+            "World. Springer, 2005.\n"
+            "Dataset archive: doi:10.5281/zenodo.3887306. License: CC BY 4.0.",
+        ),
+    ]
+    lines = [
+        "One shared electricity-interval width does not transfer across buildings",
+        "",
+    ]
+    for heading, body in sections:
+        lines.append(heading)
+        lines.append(body)
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def replace_results_block(text: str, block: str) -> str:
     start = "<!-- results:start -->"
     end = "<!-- results:end -->"

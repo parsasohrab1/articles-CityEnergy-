@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from research.loader import DATA_LICENSE, DATASET_DOI, METADATA_SHA256, PAPER_DOI
 
-from cityenergy.experiment import replace_results_block, results_block, run
+from cityenergy.experiment import manuscript_text, replace_results_block, results_block, run
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,7 +49,8 @@ def test_aiei_gate_names_the_call_and_does_not_submit():
     gate = (ROOT / "docs" / "JOURNAL_FIT.md").read_text(encoding="utf-8")
     assert "https://www.aiei2027.org/cfp.html" in gate
     assert "15 February 2027" in gate
-    assert "Do not submit." in gate
+    assert "Do not submit this measurement as a successful interval." in gate
+    assert "Nothing has been uploaded." in gate
     assert "Intelligent energy forecasting" in gate
     banned = []
     watched = (
@@ -63,3 +65,18 @@ def test_aiei_gate_names_the_call_and_does_not_submit():
         if "patent" in text or "counsel" in text:
             banned.append(relative)
     assert banned == []
+
+
+def test_manuscript_is_anonymous_and_quotes_the_results():
+    payload = json.loads((ROOT / "results" / "results.json").read_text(encoding="utf-8"))
+    text = (ROOT / "article" / "manuscript.txt").read_text(encoding="utf-8")
+    assert text == manuscript_text(payload)
+    lowered = text.lower()
+    assert "sohrabi" not in lowered
+    assert "petro" not in lowered
+    pdf = (ROOT / "article" / "manuscript.pdf").read_bytes()
+    assert b"sohrabi" not in pdf.lower()
+    assert b"petro" not in pdf.lower()
+    found = re.search(br"/Count (\d+)", pdf)
+    assert found is not None
+    assert 1 <= int(found.group(1)) <= 6
