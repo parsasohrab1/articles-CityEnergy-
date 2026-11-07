@@ -29,7 +29,7 @@ ELECTRICITY_BYTES = 177_466_613
 METADATA_SHA256 = "992d0b29f24f96ad4332bc4dbb534b7bdd7dd2689aad093f94e93068ecddca02"
 ELECTRICITY_SHA256 = "b01056f4ceec1992ce019297e674d6d6ecd0240e50a2aaeb6f958c65efdc282d"
 
-METADATA_COLUMNS = ["building_id", "site_id", "primaryspaceusage"]
+METADATA_COLUMNS = ["building_id", "site_id", "primaryspaceusage", "sqm"]
 
 
 def sha256_file(path: Path) -> str:

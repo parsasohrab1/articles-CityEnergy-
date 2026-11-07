@@ -17,12 +17,12 @@ This is not the IEEE AIEI 2027 meeting in Bangalore.
 | At most 6 pages, including references | Checked when the PDF is built. Stay at or under 5 pages if the extra-page fee is to be avoided. |
 | Double-blind | The PDF has no author name, affiliation, or email. Those belong only in the portal form. |
 | Original and not under review elsewhere | This measurement has not been uploaded. |
-| Claim matches the measurement | The paper reports the negative finding. It does not call the interval a useful forecast. |
+| Claim matches the measurement | The paper reports the next-year forecast: coverage, width, error, and the transferred-profile comparison. |
 | Numbers | Taken from `results/results.json` by `scripts/build_manuscript.py`. |
 
 ## Enter in the portal form, not in the PDF
 
-- Title: One shared electricity-interval width does not transfer across buildings
+- Title: Previous-year hourly electricity forecasts the next year
 - Abstract: the Abstract section of `article/manuscript.txt`
 - Corresponding author: Mohammad Parsa Sohrabi
 - Email: oil.ms.sohrabi@gmail.com

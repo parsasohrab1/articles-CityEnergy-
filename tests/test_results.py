@@ -27,8 +27,16 @@ def test_committed_results_match_a_fresh_run():
     committed = json.loads(path.read_text(encoding="utf-8"))
     assert committed == run()
     assert committed["dataset"]["license"] == "CC-BY-4.0"
-    assert committed["metrics"]["n_test_hours"] > 0
+    metrics = committed["metrics"]
+    hours = metrics["n_test_hours"]
+    assert hours > 0
     assert committed["selection"]["n_test_buildings"] > 0
+    assert committed["dataset"]["n_previous_year_timestamps"] == 8784
+    assert committed["dataset"]["n_test_year_timestamps"] == 8760
+    assert metrics["n_covered"] / hours >= committed["protocol"]["nominal_coverage"]
+    assert metrics["mae_kwh"] < metrics["mean_test_load_kwh"]
+    assert metrics["mae_kwh"] < metrics["transfer_mae_kwh"]
+    assert metrics["mean_interval_width_kwh"] < 2.0 * metrics["mean_test_load_kwh"]
 
 
 def test_readme_and_trl_quote_the_results_file():
@@ -49,7 +57,7 @@ def test_aiei_gate_names_the_call_and_does_not_submit():
     gate = (ROOT / "docs" / "JOURNAL_FIT.md").read_text(encoding="utf-8")
     assert "https://www.aiei2027.org/cfp.html" in gate
     assert "15 February 2027" in gate
-    assert "Do not submit this measurement as a successful interval." in gate
+    assert "The manuscript reports this next-year forecast." in gate
     assert "Nothing has been uploaded." in gate
     assert "Intelligent energy forecasting" in gate
     banned = []

@@ -1,4 +1,4 @@
-"""Run the building-wise interval protocol and return a results document."""
+"""Run the next-year interval protocol and return a results document."""
 
 from __future__ import annotations
 
@@ -17,15 +17,32 @@ from research.loader import (
 
 from cityenergy.protocol import (
     ALPHA,
+    FORECAST_START,
     SELECTION_RULE,
-    absolute_residuals,
+    area_residual_scores,
     assign_folds,
     conformal_quantile,
-    evaluate_interval,
-    fit_hour_of_week,
+    evaluate_area_interval,
+    evaluate_scaled_interval,
+    fit_area_profiles,
+    forecast_masks,
     hour_of_week_keys,
+    normalized_residual_scores,
     select_buildings,
 )
+
+
+def _future_only(
+    values: dict[str, np.ndarray],
+    building_ids: list[str],
+    past: np.ndarray,
+) -> dict[str, np.ndarray]:
+    held: dict[str, np.ndarray] = {}
+    for building_id in building_ids:
+        series = values[building_id].copy()
+        series[past] = np.nan
+        held[building_id] = series
+    return held
 
 
 def run() -> dict[str, Any]:
@@ -33,19 +50,56 @@ def run() -> dict[str, Any]:
     selection = select_buildings(meters, metadata)
     folds = assign_folds(list(selection["building_ids"]))
     hour_keys = hour_of_week_keys(meters["timestamp"])
+    past, future = forecast_masks(meters["timestamp"])
     columns = folds["train"] + folds["calibration"] + folds["test"]
     values = {
         building_id: meters[building_id].to_numpy(dtype=np.float64)
         for building_id in columns
     }
-    means = fit_hour_of_week(values, hour_keys, folds["train"])
-    calibration_scores = absolute_residuals(values, hour_keys, folds["calibration"], means)
-    train_scores = absolute_residuals(values, hour_keys, folds["train"], means)
-    quantile = conformal_quantile(calibration_scores, ALPHA)
-    train_quantile = conformal_quantile(train_scores, ALPHA)
-    calibrated = evaluate_interval(values, hour_keys, folds["test"], means, quantile)
-    train_interval = evaluate_interval(values, hour_keys, folds["test"], means, train_quantile)
+    meta = metadata.set_index("building_id")
+    area = {building_id: float(meta.loc[building_id, "sqm"]) for building_id in columns}
+    usage = {
+        building_id: str(meta.loc[building_id, "primaryspaceusage"]) for building_id in columns
+    }
+    calibration_scores = normalized_residual_scores(
+        values, hour_keys, folds["calibration"], past, future
+    )
+    normalized_quantile = conformal_quantile(calibration_scores, ALPHA)
+    calibrated = evaluate_scaled_interval(
+        values,
+        hour_keys,
+        folds["test"],
+        past,
+        future,
+        normalized_quantile,
+    )
+    train_past = {
+        building_id: np.where(future, np.nan, values[building_id]) for building_id in folds["train"]
+    }
+    profiles, overall = fit_area_profiles(train_past, hour_keys, folds["train"], area, usage)
+    transfer_scores = area_residual_scores(
+        _future_only(values, folds["calibration"], past),
+        hour_keys,
+        folds["calibration"],
+        profiles,
+        overall,
+        area,
+        usage,
+    )
+    transfer_quantile = conformal_quantile(transfer_scores, ALPHA)
+    transfer = evaluate_area_interval(
+        _future_only(values, folds["test"], past),
+        hour_keys,
+        folds["test"],
+        profiles,
+        overall,
+        area,
+        usage,
+        transfer_quantile,
+    )
     n_test = int(calibrated["n_hours"])
+    if int(transfer["n_hours"]) != n_test:
+        raise RuntimeError("transfer baseline is not on the same test hours")
     return {
         "dataset": {
             "name": DATASET_NAME,
@@ -56,17 +110,24 @@ def run() -> dict[str, Any]:
             "electricity_sha256": hashes["electricity_sha256"],
             "metadata_sha256": hashes["metadata_sha256"],
             "n_timestamps": int(len(meters)),
+            "n_previous_year_timestamps": int(past.sum()),
+            "n_test_year_timestamps": int(future.sum()),
             "timestamp_start": pd.Timestamp(meters["timestamp"].iloc[0]).isoformat(),
             "timestamp_end": pd.Timestamp(meters["timestamp"].iloc[-1]).isoformat(),
         },
         "protocol": {
-            "name": "inductive_split_conformal_absolute_residual",
-            "point_model": "hour_of_week_mean_from_train_buildings",
-            "split": "by_building",
+            "name": "next_year_scaled_split_conformal",
+            "point_model": "own_building_hour_of_week_before_forecast_start",
+            "interval": "absolute_residual_divided_by_previous_year_mae",
+            "split": "by_building_for_the_interval",
             "alpha": ALPHA,
             "nominal_coverage": 1.0 - ALPHA,
+            "forecast_start": FORECAST_START.isoformat(),
             "selection_rule": SELECTION_RULE,
-            "citation": "Lei et al., JASA 2018; Vovk, Gammerman and Shafer, 2005",
+            "citation": (
+                "Lei et al., JASA 2018, locally weighted by the previous-year "
+                "mean absolute residual; Vovk, Gammerman and Shafer, 2005"
+            ),
         },
         "selection": {
             "site_id": selection["site_id"],
@@ -85,16 +146,18 @@ def run() -> dict[str, Any]:
             "n_test_hours": n_test,
             "n_covered": int(calibrated["n_covered"]),
             "n_negative_test_hours": int(calibrated["n_negative"]),
-            "absolute_residual_quantile_kwh": quantile,
-            "interval_width_kwh": quantile * 2.0,
+            "normalized_quantile": normalized_quantile,
+            "mean_interval_width_kwh": float(calibrated["width_sum"]) / n_test,
             "mae_kwh": float(calibrated["abs_error_sum"]) / n_test,
             "mean_test_load_kwh": float(calibrated["load_sum"]) / n_test,
+            "transfer_n_covered": int(transfer["n_covered"]),
+            "transfer_intensity_quantile_kwh_per_m2": transfer_quantile,
+            "transfer_mean_interval_width_kwh": float(transfer["width_sum"]) / n_test,
+            "transfer_mae_kwh": float(transfer["abs_error_sum"]) / n_test,
             "per_building_coverage_min": calibrated["per_building_coverage_min"],
             "per_building_coverage_median": calibrated["per_building_coverage_median"],
             "per_building_coverage_max": calibrated["per_building_coverage_max"],
             "per_test_building": calibrated["per_building"],
-            "train_quantile_n_covered": int(train_interval["n_covered"]),
-            "train_quantile_width_kwh": train_quantile * 2.0,
         },
     }
 
@@ -105,28 +168,63 @@ def results_block(payload: dict[str, Any]) -> str:
     selection = payload["selection"]
     covered = int(metrics["n_covered"])
     hours = int(metrics["n_test_hours"])
-    train_covered = int(metrics["train_quantile_n_covered"])
+    transfer_covered = int(metrics["transfer_n_covered"])
     coverage = covered / hours
-    train_coverage = train_covered / hours
+    transfer_coverage = transfer_covered / hours
     return "\n".join(
         [
             f"Site {selection['site_id']}: {selection['n_train_buildings']} train buildings, "
             f"{selection['n_calibration_buildings']} calibration buildings, "
-            f"{selection['n_test_buildings']} test buildings.",
-            f"Split-conformal interval on held-out buildings: {covered}/{hours} hours "
+            f"{selection['n_test_buildings']} test buildings. "
+            f"Test year starts at {payload['protocol']['forecast_start']}.",
+            f"Own-history forecast on the test year: {covered}/{hours} hours "
             f"inside the interval ({coverage:.4f}), nominal coverage "
-            f"{payload['protocol']['nominal_coverage']:.4f}, width "
-            f"{metrics['interval_width_kwh']:.4f} kWh.",
-            f"Train-residual quantile on the same test hours: {train_covered}/{hours} "
-            f"({train_coverage:.4f}), width {metrics['train_quantile_width_kwh']:.4f} kWh.",
-            f"Point-forecast MAE {metrics['mae_kwh']:.4f} kWh. "
-            f"Mean test load {metrics['mean_test_load_kwh']:.4f} kWh.",
-            "Per test building, coverage min "
+            f"{payload['protocol']['nominal_coverage']:.4f}, mean width "
+            f"{metrics['mean_interval_width_kwh']:.4f} kWh.",
+            f"Own-history MAE {metrics['mae_kwh']:.4f} kWh. "
+            f"Mean test-year load {metrics['mean_test_load_kwh']:.4f} kWh.",
+            f"Profile transferred from other buildings' previous year, same test hours: "
+            f"{transfer_covered}/{hours} ({transfer_coverage:.4f}), mean width "
+            f"{metrics['transfer_mean_interval_width_kwh']:.4f} kWh, MAE "
+            f"{metrics['transfer_mae_kwh']:.4f} kWh.",
+            "Per test building, own-history coverage min "
             f"{metrics['per_building_coverage_min']:.4f}, median "
             f"{metrics['per_building_coverage_median']:.4f}, max "
             f"{metrics['per_building_coverage_max']:.4f}.",
         ]
     )
+
+
+def _reading(metrics: dict[str, Any], nominal: float) -> str:
+    coverage = int(metrics["n_covered"]) / int(metrics["n_test_hours"])
+    width = float(metrics["mean_interval_width_kwh"])
+    load = float(metrics["mean_test_load_kwh"])
+    mae = float(metrics["mae_kwh"])
+    transfer_mae = float(metrics["transfer_mae_kwh"])
+    sentences = []
+    if mae < transfer_mae:
+        sentences.append(
+            "On these held-out buildings the previous-year profile has a lower "
+            "mean absolute error than the profile transferred from other buildings."
+        )
+    else:
+        sentences.append(
+            "On these held-out buildings the previous-year profile does not have a "
+            "lower mean absolute error than the profile transferred from other buildings."
+        )
+    if coverage + 1e-12 >= nominal:
+        sentences.append("The measured coverage is at or above the nominal level.")
+    else:
+        sentences.append("The measured coverage is below the nominal level.")
+    if width < 2.0 * load:
+        sentences.append(
+            "The mean interval width is less than twice the mean test-year load."
+        )
+    else:
+        sentences.append(
+            "The mean interval width is at least twice the mean test-year load."
+        )
+    return " ".join(sentences)
 
 
 def manuscript_text(payload: dict[str, Any]) -> str:
@@ -136,27 +234,33 @@ def manuscript_text(payload: dict[str, Any]) -> str:
     nominal = float(payload["protocol"]["nominal_coverage"])
     covered = int(metrics["n_covered"])
     hours = int(metrics["n_test_hours"])
+    start = payload["protocol"]["forecast_start"]
+    site = selection["site_id"]
     abstract = (
-        "We test whether one absolute-residual prediction interval, calibrated on "
-        f"some buildings, covers hourly electricity on other buildings. On site "
-        f"{selection['site_id']} of the Building Data Genome Project 2, "
-        f"{selection['n_train_buildings']} buildings train an hour-of-week mean, "
-        f"{selection['n_calibration_buildings']} buildings set the interval, and "
-        f"{selection['n_test_buildings']} buildings are held out. The interval "
-        f"covered {covered}/{hours} test hours ({covered / hours:.4f}) at a nominal "
-        f"coverage of {nominal:.4f}. Its width was {metrics['interval_width_kwh']:.4f} "
-        f"kWh. The mean test load was {metrics['mean_test_load_kwh']:.4f} kWh and the "
-        f"mean absolute error was {metrics['mae_kwh']:.4f} kWh. The width is large "
-        "relative to the load, so the coverage is not evidence of a useful forecast."
+        "We forecast hourly electricity in the next calendar year from the same "
+        f"building's previous year. On site {site} of the Building Data Genome "
+        f"Project 2, the hour-of-week mean is fit only on hours before {start}. "
+        f"{selection['n_calibration_buildings']} other buildings set a "
+        "split-conformal interval and "
+        f"{selection['n_test_buildings']} buildings are scored on the later year. "
+        f"The interval covered {covered}/{hours} test-year hours "
+        f"({covered / hours:.4f}) at a nominal coverage of {nominal:.4f}. Its mean "
+        f"width was {metrics['mean_interval_width_kwh']:.4f} kWh. The mean test-year "
+        f"load was {metrics['mean_test_load_kwh']:.4f} kWh and the mean absolute "
+        f"error was {metrics['mae_kwh']:.4f} kWh. A profile transferred from other "
+        "buildings, fit without the target building's own year, had mean absolute "
+        f"error {metrics['transfer_mae_kwh']:.4f} kWh and mean width "
+        f"{metrics['transfer_mean_interval_width_kwh']:.4f} kWh on the same hours."
     )
+    reading = _reading(metrics, nominal)
     sections = [
         ("Abstract", abstract),
         (
             "1. Question",
-            "Building electricity forecasts are often a single number. An interval "
-            "is useful only when it is both calibrated and narrow enough for the load "
-            "it describes. This paper asks whether one interval width, estimated on "
-            "other buildings, transfers to held-out buildings.",
+            "The question is whether the next year of hourly electricity on a "
+            "building can be forecast from that building's previous year, with an "
+            "interval that is calibrated on other buildings and narrow enough to "
+            "sit near the load.",
         ),
         (
             "2. Data",
@@ -165,39 +269,46 @@ def manuscript_text(payload: dict[str, Any]) -> str:
             "(doi:10.5281/zenodo.3887306), described by Miller et al. (2020). "
             "The data license is CC BY 4.0. The ASHRAE Kaggle competition files "
             "were not used. A meter is kept when at least 95 percent of its hours "
-            "are present. The site with the most such meters is used. At most 40 "
-            "meters are kept, spread across the sorted building identifiers. Each "
-            "kept building is assigned to training, calibration, or test by a fixed "
-            "hash of its identifier. Hours are not shuffled across buildings.",
+            "are present and its floor area is positive. The site with the most "
+            "such meters is used. At most 40 meters are kept, spread across the "
+            "sorted building identifiers. Each kept building is assigned to "
+            "training, calibration, or test by a fixed hash of its identifier. "
+            f"Hours before {start} are the previous year. Later hours are the test "
+            "year. The point forecast for a building uses only that building's "
+            "previous year. The interval quantile uses the test year of the "
+            "calibration buildings and does not use the test buildings. The "
+            "training buildings are used only for the transferred-profile comparison.",
         ),
         (
-            "3. Interval",
-            "The point forecast is the mean load at that hour of the week, computed "
-            "on training buildings only. The interval is the inductive split-conformal "
-            "interval with absolute residuals (Vovk, Gammerman and Shafer, 2005; "
-            "Lei et al., 2018). The quantile uses rank ceil((n+1)*(1-alpha)) on "
-            "calibration buildings, with alpha equal to 0.10. The same width is then "
-            "applied to every test hour. No other conformity score is used. A "
-            "language model assisted with wording; the measurements were checked "
-            "against the script output.",
+            "3. Forecast",
+            "The point forecast is the mean load at that hour of the week in the "
+            "previous year of the same building. The interval is inductive "
+            "split-conformal regression with a locally weighted absolute residual "
+            "(Vovk, Gammerman and Shafer, 2005; Lei et al., 2018). The weight is "
+            "that building's mean absolute residual in the previous year, which is "
+            "known before the test year. The quantile uses rank "
+            "ceil((n+1)*(1-alpha)) on the calibration buildings' test-year scores, "
+            "with alpha equal to 0.10. The half-width on a building is that "
+            "quantile times its previous-year mean absolute residual. The "
+            "comparison forecast is a usage-specific hour-of-week mean of kWh per "
+            "square metre, fit on the previous year of the training buildings and "
+            "multiplied by floor area, with its own area-weighted split-conformal "
+            "interval. A language model assisted with wording. The measurements "
+            "were checked against the script output.",
         ),
         ("4. Measurement", results_block(payload)),
         (
             "5. Reading the measurement",
-            "Every test hour falls inside the interval, and the same is nearly true "
-            "of the quantile taken from training residuals. That coverage sits above "
-            "the nominal level because one width, set by larger calibration meters, "
-            "is applied to smaller test meters. Compare the width with the mean test "
-            "load in the measurement section. A symmetric residual interval can also "
-            "extend below zero. Weather is not an input. One site is not another site. "
-            "The result is not a building-management deployment.",
+            reading
+            + " The nominal level applies to the pooled test-year hours. The lowest "
+            "building in the measurement section can fall below that level. A "
+            "symmetric interval can extend below zero. Weather is not an input. "
+            "One site is not another site. This is not a building-management "
+            "deployment.",
         ),
         (
             "6. Conclusion",
-            "A nominal 90 percent electricity interval that uses one absolute residual "
-            "across buildings can cover every held-out hour and still be too wide to "
-            "use. Coverage alone is the wrong claim. The file to submit states this "
-            "negative finding and no stronger one.",
+            reading + " The file reports that forecast and no stronger one.",
         ),
         (
             "References",
@@ -212,7 +323,7 @@ def manuscript_text(payload: dict[str, Any]) -> str:
         ),
     ]
     lines = [
-        "One shared electricity-interval width does not transfer across buildings",
+        "Previous-year hourly electricity forecasts the next year",
         "",
     ]
     for heading, body in sections:

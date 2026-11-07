@@ -1,29 +1,29 @@
-One shared electricity-interval width does not transfer across buildings
+Previous-year hourly electricity forecasts the next year
 
 Abstract
-We test whether one absolute-residual prediction interval, calibrated on some buildings, covers hourly electricity on other buildings. On site Rat of the Building Data Genome Project 2, 24 buildings train an hour-of-week mean, 8 buildings set the interval, and 8 buildings are held out. The interval covered 139372/139372 test hours (1.0000) at a nominal coverage of 0.9000. Its width was 452.8592 kWh. The mean test load was 37.7539 kWh and the mean absolute error was 61.0987 kWh. The width is large relative to the load, so the coverage is not evidence of a useful forecast.
+We forecast hourly electricity in the next calendar year from the same building's previous year. On site Rat of the Building Data Genome Project 2, the hour-of-week mean is fit only on hours before 2017-01-01T00:00:00. 8 other buildings set a split-conformal interval and 8 buildings are scored on the later year. The interval covered 65865/69506 test-year hours (0.9476) at a nominal coverage of 0.9000. Its mean width was 49.8700 kWh. The mean test-year load was 36.2297 kWh and the mean absolute error was 9.9583 kWh. A profile transferred from other buildings, fit without the target building's own year, had mean absolute error 14.7358 kWh and mean width 151.8214 kWh on the same hours.
 
 1. Question
-Building electricity forecasts are often a single number. An interval is useful only when it is both calibrated and narrow enough for the load it describes. This paper asks whether one interval width, estimated on other buildings, transfers to held-out buildings.
+The question is whether the next year of hourly electricity on a building can be forecast from that building's previous year, with an interval that is calibrated on other buildings and narrow enough to sit near the load.
 
 2. Data
-The meters are the cleaned hourly electricity file and the building metadata in Building Data Genome Project 2, release v1.0 (doi:10.5281/zenodo.3887306), described by Miller et al. (2020). The data license is CC BY 4.0. The ASHRAE Kaggle competition files were not used. A meter is kept when at least 95 percent of its hours are present. The site with the most such meters is used. At most 40 meters are kept, spread across the sorted building identifiers. Each kept building is assigned to training, calibration, or test by a fixed hash of its identifier. Hours are not shuffled across buildings.
+The meters are the cleaned hourly electricity file and the building metadata in Building Data Genome Project 2, release v1.0 (doi:10.5281/zenodo.3887306), described by Miller et al. (2020). The data license is CC BY 4.0. The ASHRAE Kaggle competition files were not used. A meter is kept when at least 95 percent of its hours are present and its floor area is positive. The site with the most such meters is used. At most 40 meters are kept, spread across the sorted building identifiers. Each kept building is assigned to training, calibration, or test by a fixed hash of its identifier. Hours before 2017-01-01T00:00:00 are the previous year. Later hours are the test year. The point forecast for a building uses only that building's previous year. The interval quantile uses the test year of the calibration buildings and does not use the test buildings. The training buildings are used only for the transferred-profile comparison.
 
-3. Interval
-The point forecast is the mean load at that hour of the week, computed on training buildings only. The interval is the inductive split-conformal interval with absolute residuals (Vovk, Gammerman and Shafer, 2005; Lei et al., 2018). The quantile uses rank ceil((n+1)*(1-alpha)) on calibration buildings, with alpha equal to 0.10. The same width is then applied to every test hour. No other conformity score is used. A language model assisted with wording; the measurements were checked against the script output.
+3. Forecast
+The point forecast is the mean load at that hour of the week in the previous year of the same building. The interval is inductive split-conformal regression with a locally weighted absolute residual (Vovk, Gammerman and Shafer, 2005; Lei et al., 2018). The weight is that building's mean absolute residual in the previous year, which is known before the test year. The quantile uses rank ceil((n+1)*(1-alpha)) on the calibration buildings' test-year scores, with alpha equal to 0.10. The half-width on a building is that quantile times its previous-year mean absolute residual. The comparison forecast is a usage-specific hour-of-week mean of kWh per square metre, fit on the previous year of the training buildings and multiplied by floor area, with its own area-weighted split-conformal interval. A language model assisted with wording. The measurements were checked against the script output.
 
 4. Measurement
-Site Rat: 24 train buildings, 8 calibration buildings, 8 test buildings.
-Split-conformal interval on held-out buildings: 139372/139372 hours inside the interval (1.0000), nominal coverage 0.9000, width 452.8592 kWh.
-Train-residual quantile on the same test hours: 138969/139372 (0.9971), width 270.5115 kWh.
-Point-forecast MAE 61.0987 kWh. Mean test load 37.7539 kWh.
-Per test building, coverage min 1.0000, median 1.0000, max 1.0000.
+Site Rat: 24 train buildings, 8 calibration buildings, 8 test buildings. Test year starts at 2017-01-01T00:00:00.
+Own-history forecast on the test year: 65865/69506 hours inside the interval (0.9476), nominal coverage 0.9000, mean width 49.8700 kWh.
+Own-history MAE 9.9583 kWh. Mean test-year load 36.2297 kWh.
+Profile transferred from other buildings' previous year, same test hours: 65880/69506 (0.9478), mean width 151.8214 kWh, MAE 14.7358 kWh.
+Per test building, own-history coverage min 0.8593, median 0.9658, max 0.9925.
 
 5. Reading the measurement
-Every test hour falls inside the interval, and the same is nearly true of the quantile taken from training residuals. That coverage sits above the nominal level because one width, set by larger calibration meters, is applied to smaller test meters. Compare the width with the mean test load in the measurement section. A symmetric residual interval can also extend below zero. Weather is not an input. One site is not another site. The result is not a building-management deployment.
+On these held-out buildings the previous-year profile has a lower mean absolute error than the profile transferred from other buildings. The measured coverage is at or above the nominal level. The mean interval width is less than twice the mean test-year load. The nominal level applies to the pooled test-year hours. The lowest building in the measurement section can fall below that level. A symmetric interval can extend below zero. Weather is not an input. One site is not another site. This is not a building-management deployment.
 
 6. Conclusion
-A nominal 90 percent electricity interval that uses one absolute residual across buildings can cover every held-out hour and still be too wide to use. Coverage alone is the wrong claim. The file to submit states this negative finding and no stronger one.
+On these held-out buildings the previous-year profile has a lower mean absolute error than the profile transferred from other buildings. The measured coverage is at or above the nominal level. The mean interval width is less than twice the mean test-year load. The file reports that forecast and no stronger one.
 
 References
 Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R. J., and Wasserman, L. Distribution-free predictive inference for regression. Journal of the American Statistical Association, 113(523), 1094-1111, 2018.

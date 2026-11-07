@@ -1,30 +1,30 @@
 # CityEnergy
 
-Offline check of a nominal 90% electricity interval on real non-residential meters from the Building Data Genome Project 2. The split unit is the building. The point forecast is the hour-of-week mean fit on training buildings only. The interval is inductive split-conformal regression with absolute residuals (Lei et al., JASA 2018; Vovk, Gammerman and Shafer, 2005).
+Offline next-year forecast of hourly electricity on real non-residential meters from the Building Data Genome Project 2. Each building's point forecast is its own hour-of-week mean from the previous year. The interval is inductive split-conformal regression, locally weighted by that building's previous-year mean absolute error (Lei et al., JASA 2018; Vovk, Gammerman and Shafer, 2005). The quantile is fit on other buildings. A transferred profile that never sees the target building is the comparison.
 
 This repository does not report a synthetic-data performance number.
 
-The target venue is AIEI 2027 at https://www.aiei2027.org/ (deadline 15 February 2027). The journal-fit gate is in `docs/JOURNAL_FIT.md`. The anonymized manuscript is `article/manuscript.pdf`. It states the negative finding: the measured interval is too wide relative to the test load to support a useful-forecast claim. Upload steps that only an author can finish are in `docs/SUBMISSION.md`. Nothing has been uploaded. The interval implemented here is the published absolute-residual construction cited above. No other conformity score is described.
+The target venue is AIEI 2027 at https://www.aiei2027.org/ (deadline 15 February 2027). The journal-fit gate is in `docs/JOURNAL_FIT.md`. The anonymized manuscript is `article/manuscript.pdf`. It reports this next-year forecast. Upload steps that only an author can finish are in `docs/SUBMISSION.md`. Nothing has been uploaded.
 
 ## Measured result
 
 <!-- results:start -->
-Site Rat: 24 train buildings, 8 calibration buildings, 8 test buildings.
-Split-conformal interval on held-out buildings: 139372/139372 hours inside the interval (1.0000), nominal coverage 0.9000, width 452.8592 kWh.
-Train-residual quantile on the same test hours: 138969/139372 (0.9971), width 270.5115 kWh.
-Point-forecast MAE 61.0987 kWh. Mean test load 37.7539 kWh.
-Per test building, coverage min 1.0000, median 1.0000, max 1.0000.
+Site Rat: 24 train buildings, 8 calibration buildings, 8 test buildings. Test year starts at 2017-01-01T00:00:00.
+Own-history forecast on the test year: 65865/69506 hours inside the interval (0.9476), nominal coverage 0.9000, mean width 49.8700 kWh.
+Own-history MAE 9.9583 kWh. Mean test-year load 36.2297 kWh.
+Profile transferred from other buildings' previous year, same test hours: 65880/69506 (0.9478), mean width 151.8214 kWh, MAE 14.7358 kWh.
+Per test building, own-history coverage min 0.8593, median 0.9658, max 0.9925.
 <!-- results:end -->
 
 ## Data and method limits
 
 The loader, the CC BY 4.0 record, and the pinned file hashes are in `research/`. Meter files stay in `data/cache/` and are not committed. `results/results.json` is written only by `scripts/run_experiment.py`.
 
-- The site and the meters follow a fixed completeness rule, applied before any score is computed.
-- The forecast uses the calendar only. Weather is not an input.
-- One absolute-residual width is shared by every building. A large calibration meter sets a width that can dwarf a smaller test meter, so a high coverage can be an uninformative interval. Compare the width with the mean test load in the measured block.
+- The site and the meters follow a fixed completeness rule, applied before any score is computed. The year cut is 2017-01-01.
+- The forecast uses the calendar and that building's previous year. Weather is not an input.
+- The interval width scales with the previous-year error, so a steadier building gets a narrower interval. The nominal 90% applies to the pooled test-year hours. One building can fall below that level. Compare the width with the mean test-year load in the measured block.
 - A symmetric residual interval can extend below zero even though a meter does not.
-- Holding out whole buildings is a shift test. The nominal 90% is a reference for that test, not a guarantee on a new building.
+- The comparison profile is fit on other buildings and does not use the target meter.
 - There is no building-management integration and no operator study.
 
 ## Reproduce

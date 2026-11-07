@@ -12,15 +12,14 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from cityenergy.experiment import manuscript_text  # noqa: E402
 
-TITLE = "One shared electricity-interval width does not transfer across buildings"
-
 
 def write_pdf(path: Path, text: str) -> int:
     from fpdf import FPDF
 
+    title = text.split("\n", 1)[0]
     pdf = FPDF(format="A4")
     pdf.set_auto_page_break(auto=True, margin=18)
-    pdf.set_title(TITLE)
+    pdf.set_title(title)
     pdf.set_author("")
     pdf.set_creator("")
     pdf.set_subject("")
@@ -28,8 +27,8 @@ def write_pdf(path: Path, text: str) -> int:
     pdf.set_font("Times", size=11)
     for block in text.split("\n\n"):
         heading = block.split("\n", 1)[0]
-        if heading == TITLE or heading[:1].isdigit() or heading in {"Abstract", "References"}:
-            pdf.set_font("Times", style="B", size=12 if heading != TITLE else 14)
+        if heading == title or heading[:1].isdigit() or heading in {"Abstract", "References"}:
+            pdf.set_font("Times", style="B", size=12 if heading != title else 14)
             pdf.multi_cell(0, 7, heading)
             pdf.ln(1)
             rest = block.split("\n", 1)[1] if "\n" in block else ""

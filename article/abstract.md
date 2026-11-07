@@ -1,17 +1,17 @@
 # Abstract draft
 
-**Title:** A shared absolute-residual electricity interval on held-out buildings
+**Title:** Previous-year hourly electricity forecasts the next year
 
 **Target:** AIEI 2027, https://www.aiei2027.org/ — not submitted. See `docs/JOURNAL_FIT.md`.
 
 <!-- results:start -->
-Site Rat: 24 train buildings, 8 calibration buildings, 8 test buildings.
-Split-conformal interval on held-out buildings: 139372/139372 hours inside the interval (1.0000), nominal coverage 0.9000, width 452.8592 kWh.
-Train-residual quantile on the same test hours: 138969/139372 (0.9971), width 270.5115 kWh.
-Point-forecast MAE 61.0987 kWh. Mean test load 37.7539 kWh.
-Per test building, coverage min 1.0000, median 1.0000, max 1.0000.
+Site Rat: 24 train buildings, 8 calibration buildings, 8 test buildings. Test year starts at 2017-01-01T00:00:00.
+Own-history forecast on the test year: 65865/69506 hours inside the interval (0.9476), nominal coverage 0.9000, mean width 49.8700 kWh.
+Own-history MAE 9.9583 kWh. Mean test-year load 36.2297 kWh.
+Profile transferred from other buildings' previous year, same test hours: 65880/69506 (0.9478), mean width 151.8214 kWh, MAE 14.7358 kWh.
+Per test building, own-history coverage min 0.8593, median 0.9658, max 0.9925.
 <!-- results:end -->
 
-The point forecast is an hour-of-week mean fit on other buildings. The interval is inductive split-conformal regression with one absolute residual for every building (Lei et al., JASA 2018). Because that single width is set by larger calibration meters, covering every test hour is not a useful forecast. The draft is not submitted.
+The point forecast is the hour-of-week mean of the same building before 2017. The interval is inductive split-conformal regression, locally weighted by that building's previous-year mean absolute error (Lei et al., JASA 2018). The comparison is a profile transferred from other buildings. The draft is not submitted.
 
-**Keywords:** building electricity; prediction interval; split conformal; Building Data Genome 2
+**Keywords:** building electricity; next-year forecast; split conformal; Building Data Genome 2
