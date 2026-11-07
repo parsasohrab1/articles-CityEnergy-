@@ -1,0 +1,150 @@
+{
+  "dataset": {
+    "doi": "10.5281/zenodo.3887306",
+    "electricity_sha256": "b01056f4ceec1992ce019297e674d6d6ecd0240e50a2aaeb6f958c65efdc282d",
+    "license": "CC-BY-4.0",
+    "metadata_sha256": "992d0b29f24f96ad4332bc4dbb534b7bdd7dd2689aad093f94e93068ecddca02",
+    "n_previous_year_timestamps": 8784,
+    "n_test_year_timestamps": 8760,
+    "n_timestamps": 17544,
+    "name": "Building Data Genome Project 2",
+    "paper_doi": "10.1038/s41597-020-00712-x",
+    "timestamp_end": "2017-12-31T23:00:00",
+    "timestamp_start": "2016-01-01T00:00:00",
+    "version": "v1.0"
+  },
+  "metrics": {
+    "mae_kwh": 9.958255902763105,
+    "mean_interval_width_kwh": 49.87003704396122,
+    "mean_test_load_kwh": 36.229733116565505,
+    "n_calibration_hours": 69697,
+    "n_covered": 65865,
+    "n_negative_test_hours": 0,
+    "n_test_hours": 69506,
+    "normalized_quantile": 2.0851194954859484,
+    "per_building_coverage_max": 0.9925166935298181,
+    "per_building_coverage_median": 0.9658239117320827,
+    "per_building_coverage_min": 0.859308110609742,
+    "per_test_building": [
+      {
+        "building_id": "Rat_assembly_Frieda",
+        "n_covered": 8524,
+        "n_hours": 8710
+      },
+      {
+        "building_id": "Rat_assembly_Lillie",
+        "n_covered": 7972,
+        "n_hours": 8581
+      },
+      {
+        "building_id": "Rat_assembly_Trent",
+        "n_covered": 7844,
+        "n_hours": 8710
+      },
+      {
+        "building_id": "Rat_education_Tim",
+        "n_covered": 8473,
+        "n_hours": 8732
+      },
+      {
+        "building_id": "Rat_lodging_Ted",
+        "n_covered": 8631,
+        "n_hours": 8734
+      },
+      {
+        "building_id": "Rat_public_Becky",
+        "n_covered": 8621,
+        "n_hours": 8686
+      },
+      {
+        "building_id": "Rat_public_Nelson",
+        "n_covered": 8373,
+        "n_hours": 8710
+      },
+      {
+        "building_id": "Rat_public_Shanta",
+        "n_covered": 7427,
+        "n_hours": 8643
+      }
+    ],
+    "transfer_intensity_quantile_kwh_per_m2": 0.05018561679586806,
+    "transfer_mae_kwh": 14.735827926247685,
+    "transfer_mean_interval_width_kwh": 151.82140576289814,
+    "transfer_n_covered": 65880
+  },
+  "protocol": {
+    "alpha": 0.1,
+    "citation": "Lei et al., JASA 2018, locally weighted by the previous-year mean absolute residual; Vovk, Gammerman and Shafer, 2005",
+    "forecast_start": "2017-01-01T00:00:00",
+    "interval": "absolute_residual_divided_by_previous_year_mae",
+    "name": "next_year_scaled_split_conformal",
+    "nominal_coverage": 0.9,
+    "point_model": "own_building_hour_of_week_before_forecast_start",
+    "selection_rule": "Keep electricity meters whose non-null hour count is at least 95 percent of the file (integer test 20*count >= 19*n_rows) and whose floor area is positive. Choose the site with the most such meters; break ties by site_id alphabetical order. If that site has more than 40 meters, keep 40 spread evenly across the sorted building_id list. Assign each kept building with the first 4 bytes of SHA-256: raw <= 2576980377 train, raw <= 3435973836 calibration, otherwise test.",
+    "split": "by_building_for_the_interval"
+  },
+  "selection": {
+    "calibration_buildings": [
+      "Rat_assembly_Adolfo",
+      "Rat_assembly_Deandre",
+      "Rat_education_Lee",
+      "Rat_education_Mose",
+      "Rat_education_Shellie",
+      "Rat_office_Jacinta",
+      "Rat_public_Tamra",
+      "Rat_warehouse_Shari"
+    ],
+    "n_calibration_buildings": 8,
+    "n_qualifying_on_site": 260,
+    "n_qualifying_total": 1267,
+    "n_test_buildings": 8,
+    "n_train_buildings": 24,
+    "primaryspaceusage_counts": {
+      "Education": 13,
+      "Entertainment/public assembly": 7,
+      "Healthcare": 1,
+      "Lodging/residential": 2,
+      "Office": 3,
+      "Parking": 1,
+      "Public services": 12,
+      "Warehouse/storage": 1
+    },
+    "site_id": "Rat",
+    "test_buildings": [
+      "Rat_assembly_Frieda",
+      "Rat_assembly_Lillie",
+      "Rat_assembly_Trent",
+      "Rat_education_Tim",
+      "Rat_lodging_Ted",
+      "Rat_public_Becky",
+      "Rat_public_Nelson",
+      "Rat_public_Shanta"
+    ],
+    "train_buildings": [
+      "Rat_assembly_Jennie",
+      "Rat_assembly_Rolland",
+      "Rat_education_Alfonso",
+      "Rat_education_Calvin",
+      "Rat_education_Dana",
+      "Rat_education_Earl",
+      "Rat_education_Francisca",
+      "Rat_education_Jena",
+      "Rat_education_Marianna",
+      "Rat_education_Paula",
+      "Rat_education_Winnie",
+      "Rat_health_Rosaria",
+      "Rat_lodging_Dwight",
+      "Rat_office_Lora",
+      "Rat_office_Rosemary",
+      "Rat_parking_Ronnie",
+      "Rat_public_Corinne",
+      "Rat_public_Dexter",
+      "Rat_public_Frederick",
+      "Rat_public_Johnny",
+      "Rat_public_Kimber",
+      "Rat_public_Lloyd",
+      "Rat_public_Michael",
+      "Rat_public_Wilma"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+Portal: https://aiei2027.org/submission.html
+Kind: Full paper
+Track: Artificial Intelligence for Smart Energy Systems
+Title: Previous-year hourly electricity forecasts the next year
+
+Abstract:
+We forecast hourly electricity in the next calendar year from the same building's previous year. On site Rat of the Building Data Genome Project 2, the hour-of-week mean is fit only on hours before 2017-01-01T00:00:00. 8 other buildings set a split-conformal interval and 8 buildings are scored on the later year. The interval covered 65865/69506 test-year hours (0.9476) at a nominal coverage of 0.9000. Its mean width was 49.8700 kWh. The mean test-year load was 36.2297 kWh and the mean absolute error was 9.9583 kWh. A profile transferred from other buildings, fit without the target building's own year, had mean absolute error 14.7358 kWh and mean width 151.8214 kWh on the same hours.
+
+Keywords: building electricity; next-year forecast; prediction interval; Building Data Genome 2
+
+Authors, entered in the portal form only:
+1. Mohammad Parsa Sohrabi
+Email: oil.ms.sohrabi@gmail.com
+Affiliation: Parsa International Group, Istanbul, Türkiye; Petro Pala Toos
+Corresponding author email: oil.ms.sohrabi@gmail.com
+Corresponding author affiliation: Parsa International Group, Istanbul, Türkiye; Petro Pala Toos
+
+Files:
+- article/manuscript.pdf (anonymized, no author metadata)
+- Signed copyright form, downloaded from https://www.e3s-conferences.org/doc_journal/woc/publication_right_form.pdf
+- Camera-ready format notes, if accepted: https://www.e3s-conferences.org/doc_journal/woc/pdf_guidelines.pdf
+
+The copyright form is not signed in this repository.
+Nothing in this repository has been uploaded.

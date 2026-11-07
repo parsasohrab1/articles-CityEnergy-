@@ -1,0 +1,77 @@
+"""Write the anonymized manuscript and the portal paste sheet."""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
+
+from cityenergy.experiment import manuscript_text  # noqa: E402
+from cityenergy.submission import package_problems, portal_sheet  # noqa: E402
+
+_HEADINGS = {"Abstract", "Keywords", "References"}
+
+
+def write_pdf(path: Path, text: str) -> int:
+    from fpdf import FPDF
+
+    title = text.split("\n", 1)[0]
+
+    class Paper(FPDF):
+        def footer(self) -> None:
+            self.set_y(-15)
+            self.set_font("Times", size=9)
+            self.cell(0, 8, str(self.page_no()), align="C")
+
+    pdf = Paper(format="A4")
+    pdf.set_auto_page_break(auto=True, margin=18)
+    pdf.set_title(title)
+    pdf.set_author("")
+    pdf.set_creator("")
+    pdf.set_subject("")
+    pdf.set_keywords("")
+    pdf.set_producer("")
+    pdf.add_page()
+    pdf.set_font("Times", size=11)
+    for block in text.split("\n\n"):
+        heading = block.split("\n", 1)[0]
+        if heading == title or heading[:1].isdigit() or heading in _HEADINGS:
+            pdf.set_font("Times", style="B", size=12 if heading != title else 14)
+            pdf.multi_cell(0, 7, heading)
+            pdf.ln(1)
+            rest = block.split("\n", 1)[1] if "\n" in block else ""
+            pdf.set_font("Times", size=11)
+            if rest:
+                pdf.multi_cell(0, 6, rest)
+        else:
+            pdf.set_font("Times", size=11)
+            pdf.multi_cell(0, 6, block)
+        pdf.ln(2)
+    if pdf.page > 6:
+        raise RuntimeError(f"manuscript is {pdf.page} pages; the call allows 6")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pdf.output(path)
+    return pdf.page
+
+
+def main() -> None:
+    payload = json.loads((ROOT / "results" / "results.json").read_text(encoding="utf-8"))
+    text = manuscript_text(payload)
+    article = ROOT / "article"
+    article.mkdir(parents=True, exist_ok=True)
+    (article / "manuscript.txt").write_text(text, encoding="utf-8", newline="\n")
+    pages = write_pdf(article / "manuscript.pdf", text)
+    sheet = portal_sheet(text)
+    (article / "PORTAL.txt").write_text(sheet, encoding="utf-8", newline="\n")
+    problems = package_problems(text, sheet, (article / "manuscript.pdf").read_bytes())
+    if problems:
+        raise RuntimeError("; ".join(problems))
+    print(f"{article / 'manuscript.pdf'} ({pages} pages)")
+
+
+if __name__ == "__main__":
+    main()
