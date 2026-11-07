@@ -14,4 +14,4 @@ Per test building, own-history coverage min 0.8593, median 0.9658, max 0.9925.
 
 The point forecast is the hour-of-week mean of the same building before 2017. The interval is inductive split-conformal regression, locally weighted by that building's previous-year mean absolute error (Lei et al., JASA 2018). The comparison is a profile transferred from other buildings. The draft is not submitted.
 
-**Keywords:** building electricity; next-year forecast; split conformal; Building Data Genome 2
+**Keywords:** building electricity; next-year forecast; prediction interval; Building Data Genome 2

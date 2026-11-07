@@ -4,7 +4,7 @@ Offline next-year forecast of hourly electricity on real non-residential meters 
 
 This repository does not report a synthetic-data performance number.
 
-The target venue is AIEI 2027 at https://www.aiei2027.org/ (deadline 15 February 2027). The journal-fit gate is in `docs/JOURNAL_FIT.md`. The anonymized manuscript is `article/manuscript.pdf`. It reports this next-year forecast. Upload steps that only an author can finish are in `docs/SUBMISSION.md`. Nothing has been uploaded.
+The target venue is AIEI 2027 at https://www.aiei2027.org/ (deadline 15 February 2027). The journal-fit gate is in `docs/JOURNAL_FIT.md`. The anonymized manuscript is `article/manuscript.pdf`. The portal paste sheet is `article/PORTAL.txt`. It reports this next-year forecast. The steps that only an author can finish are in `docs/SUBMISSION.md`. Nothing has been uploaded.
 
 ## Measured result
 

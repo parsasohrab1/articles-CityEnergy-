@@ -7,6 +7,13 @@ from pathlib import Path
 from research.loader import DATA_LICENSE, DATASET_DOI, METADATA_SHA256, PAPER_DOI
 
 from cityenergy.experiment import manuscript_text, replace_results_block, results_block, run
+from cityenergy.submission import (
+    COPYRIGHT_FORM_URL,
+    PORTAL_URL,
+    TRACK,
+    package_problems,
+    portal_sheet,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -79,12 +86,21 @@ def test_manuscript_is_anonymous_and_quotes_the_results():
     payload = json.loads((ROOT / "results" / "results.json").read_text(encoding="utf-8"))
     text = (ROOT / "article" / "manuscript.txt").read_text(encoding="utf-8")
     assert text == manuscript_text(payload)
-    lowered = text.lower()
-    assert "sohrabi" not in lowered
-    assert "petro" not in lowered
+    portal = (ROOT / "article" / "PORTAL.txt").read_text(encoding="utf-8")
+    assert portal == portal_sheet(text)
     pdf = (ROOT / "article" / "manuscript.pdf").read_bytes()
-    assert b"sohrabi" not in pdf.lower()
-    assert b"petro" not in pdf.lower()
+    assert package_problems(text, portal, pdf) == []
     found = re.search(br"/Count (\d+)", pdf)
     assert found is not None
-    assert 1 <= int(found.group(1)) <= 6
+    assert 1 <= int(found.group(1)) <= 5
+
+
+def test_submission_sheet_names_the_live_portal_and_not_an_upload():
+    sheet = (ROOT / "docs" / "SUBMISSION.md").read_text(encoding="utf-8")
+    portal = (ROOT / "article" / "PORTAL.txt").read_text(encoding="utf-8")
+    assert PORTAL_URL in sheet
+    assert COPYRIGHT_FORM_URL in sheet
+    assert TRACK in sheet
+    assert TRACK in portal
+    assert "Nothing in this repository has been uploaded." in sheet
+    assert "EasyChair" not in sheet

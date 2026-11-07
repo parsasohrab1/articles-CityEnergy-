@@ -256,6 +256,11 @@ def manuscript_text(payload: dict[str, Any]) -> str:
     sections = [
         ("Abstract", abstract),
         (
+            "Keywords",
+            "building electricity; next-year forecast; prediction interval; "
+            "Building Data Genome 2",
+        ),
+        (
             "1. Question",
             "The question is whether the next year of hourly electricity on a "
             "building can be forecast from that building's previous year, with an "
@@ -293,8 +298,8 @@ def manuscript_text(payload: dict[str, Any]) -> str:
             "comparison forecast is a usage-specific hour-of-week mean of kWh per "
             "square metre, fit on the previous year of the training buildings and "
             "multiplied by floor area, with its own area-weighted split-conformal "
-            "interval. A language model assisted with wording. The measurements "
-            "were checked against the script output.",
+            "interval. A language model assisted with wording. It is not an author. "
+            "The measurements were checked against the script output.",
         ),
         ("4. Measurement", results_block(payload)),
         (

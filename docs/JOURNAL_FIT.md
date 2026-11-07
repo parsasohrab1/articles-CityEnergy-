@@ -33,4 +33,4 @@ The point forecast uses only the previous year of the scored building. The inter
 
 ## Decision
 
-The manuscript reports this next-year forecast. The anonymized file `article/manuscript.pdf` is the full paper: English, no author names, and within the six-page limit. `docs/SUBMISSION.md` lists the portal steps. Nothing has been uploaded.
+The manuscript reports this next-year forecast. The anonymized file `article/manuscript.pdf` is the full paper: English, no author names, and within five pages. `article/PORTAL.txt` holds the portal fields. `docs/SUBMISSION.md` lists the portal steps. The publication-right form still needs the author's signature. Nothing has been uploaded.
